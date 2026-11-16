@@ -10,17 +10,105 @@
   <header>
     <div class="brand">
       <strong>TUAS guided payload</strong>
-      <span>ESP32 parafoil law, running in the browser. Same numbers as the C tests.</span>
+      <span id="result" class="pill">—</span>
     </div>
-    <div class="transport" id="transport"></div>
+    <div class="controls">
+      <div class="transport">
+        <button id="play" class="primary">Pause</button>
+        <button id="back" title="Step back one tick">Back</button>
+        <button id="fwd" title="Step forward one tick">Step</button>
+        <select id="preset" aria-label="Scenario">
+          <option value="calm">Calm</option>
+          <option value="wind">Crosswind 4 m/s</option>
+          <option value="gust">Gust</option>
+          <option value="inverted">2025 inverted PID</option>
+          <option value="unguided">Unguided chute</option>
+        </select>
+        <button id="readout" aria-pressed="true">Readout</button>
+      </div>
+      <div class="gains">
+        <label class="slider">Kp <b id="kpv">3.0</b><input id="kp" type="range" min="0" max="8" step="0.1" value="3"></label>
+        <label class="slider">Ki <b id="kiv">0.08</b><input id="ki" type="range" min="0" max="0.4" step="0.01" value="0.08"></label>
+        <label class="slider">Kd <b id="kdv">0.45</b><input id="kd" type="range" min="0" max="2" step="0.05" value="0.45"></label>
+        <label class="slider">Wind E <b id="windv">0</b><input id="wind" type="range" min="-8" max="8" step="0.5" value="0"></label>
+        <label class="slider">Release <b id="altv">60</b><input id="alt" type="range" min="40" max="90" step="1" value="60"></label>
+      </div>
+    </div>
   </header>
-  <div class="layout">
-    <section class="stage">
-      <canvas id="map"></canvas>
-      <canvas id="chart"></canvas>
+  <div class="main" id="main">
+    <div id="stage">
+      <canvas id="view" tabindex="0" aria-label="3D flight view"></canvas>
+      <div id="tags">
+        <div class="tag" id="tag-target">Target</div>
+        <div class="tag" id="tag-payload">Payload</div>
+        <div class="tag" id="tag-carrier">Carrier</div>
+      </div>
+      <div class="legend">
+        <span><i class="sw amber"></i>50 ft</span>
+        <span><i class="sw blue"></i>min turn</span>
+        <span><i class="sw red"></i>10 ft</span>
+      </div>
     </div>
-    <aside id="side"></aside>
+    <aside id="inspector">
+      <div class="att">
+        <canvas id="horizon" width="264" height="156"></canvas>
+        <div class="att-nums">
+          <div><span>Yaw</span><b id="yaw">0°</b></div>
+          <div><span>Pitch</span><b id="pitch">0°</b></div>
+          <div><span>Roll</span><b id="roll">0°</b></div>
+        </div>
+      </div>
+      <p class="fine" id="rates"></p>
+      <div class="chips">
+        <span class="chip on" id="chip-state">STANDBY</span>
+        <span class="chip" id="chip-mode">ATTACHED</span>
+        <span class="chip" id="chip-pc">fsm_standby</span>
+      </div>
+      <p class="note" id="phase"></p>
+      <h2>This tick</h2>
+      <div class="rows">
+        <div class="row" id="row-dist"><span>dist, bearing</span><b id="v-dist"></b></div>
+        <div class="row" id="row-sur"><span>surplus</span><b id="v-sur"></b></div>
+        <div class="row" id="row-des"><span>desired heading</span><b id="v-des"></b></div>
+        <div class="row" id="row-err"><span>error</span><b id="v-err"></b></div>
+        <div class="row" id="row-u"><span>u → brakes L / R</span><b id="v-u"></b></div>
+        <div class="row" id="row-pos"><span>n, e, alt</span><b id="v-pos"></b></div>
+      </div>
+      <h2>PID memory</h2>
+      <div class="mem">
+        <div><span>integral</span><b id="m-i">0</b></div>
+        <div><span>prev error</span><b id="m-p">0</b></div>
+        <div><span>d filter</span><b id="m-d">0</b></div>
+      </div>
+      <div class="meters">
+        <div class="meter"><span>P</span><div class="bar"><i id="bar-p"></i></div><b id="t-p">0</b></div>
+        <div class="meter"><span>I</span><div class="bar"><i id="bar-i"></i></div><b id="t-i">0</b></div>
+        <div class="meter"><span>D</span><div class="bar"><i id="bar-d"></i></div><b id="t-d">0</b></div>
+        <div class="meter"><span>L</span><div class="bar"><i id="bar-l"></i></div><b id="t-l">0</b></div>
+        <div class="meter"><span>R</span><div class="bar"><i id="bar-r"></i></div><b id="t-r">0</b></div>
+      </div>
+      <h2>Packet</h2>
+      <p class="note" id="packet"></p>
+      <p class="fine" id="ll"></p>
+      <p class="fine">Yaw is the plant heading. Pitch is the glide angle and roll is the coordinated-turn bank. The PID commands heading only.</p>
+    </aside>
   </div>
+  <footer>
+    <div class="views">
+      <button id="follow" class="primary" aria-pressed="true">Follow</button>
+      <button id="overhead">Overhead</button>
+      <button id="fit">Fit</button>
+    </div>
+    <input id="scrub" type="range" min="0" max="1" value="0" aria-label="Time">
+    <span id="clock">0.00 s</span>
+    <select id="rate" aria-label="Playback speed">
+      <option value="1">1×</option>
+      <option value="2" selected>2×</option>
+      <option value="4">4×</option>
+    </select>
+    <canvas id="spark" width="440" height="72"></canvas>
+    <span class="fine" id="hint">Following · drag the view to look around</span>
+  </footer>
   <script type="module" src="ui.js"></script>
 </body>
 </html>
