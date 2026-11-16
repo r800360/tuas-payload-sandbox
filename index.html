@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TUAS guided payload</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <strong>TUAS guided payload</strong>
+      <span>ESP32 parafoil law, running in the browser. Same numbers as the C tests.</span>
+    </div>
+    <div class="transport" id="transport"></div>
+  </header>
+  <div class="layout">
+    <section class="stage">
+      <canvas id="map"></canvas>
+      <canvas id="chart"></canvas>
+    </div>
+    <aside id="side"></aside>
+  </div>
+  <script type="module" src="ui.js"></script>
+</body>
+</html>
